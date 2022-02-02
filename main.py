@@ -73,6 +73,7 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         fout.truncate()
         fout.seek(0, 0)
 
+        fout.write("const uint8 boot_data={ \\")
         for i in range(size):
             # temp = '0x' + str(fin.read(1)).format("0x%.2X",)
             # print(str(fin.read(1)).format("0x%.2X"))
@@ -80,28 +81,31 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
             # print(int(ord(fin.read(1), 16)))
             # print(hex(ord(fin.read(1))))
             # self.textEdit.insertPlainText(hex(ord(fin.read(1))) + ',')
-            if i % 10 != 0:
-                fout.write(hex(ord(fin.read(1))) + ',')
+            if i % 16 != 0:
+                # fout.write(hex(ord(fin.read(1))) + ',')
+                temp = "0x%.2x" % ord(fin.read(1))
+                fout.write(temp + ',')
             else:
                 fout.write('\n')
-                fout.write(hex(ord(fin.read(1))) + ',')
+                # fout.write(hex(ord(fin.read(1))) + ',')
+                temp = "0x%.2x" % ord(fin.read(1))
+                fout.write(temp + ',')
+        fout.write("};")
+        # print("'0x' + str(fin.read(1), 16")
+        # print(temp)
 
-
-            # print("'0x' + str(fin.read(1), 16")
-            # print(temp)
-
-            # intel-hex 格式
-            #:LLAAAARRDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDZZ
-            # LL——长度,单位，byte
-            # AAAA——16 bit 地址
-            # RR——类型
-            # - 00 数据记录 (data record)
-            # - 01 结束记录 (end record)
-            # - 02 扩展段地址记录 (paragraph record)
-            # - 03 转移地址记录 (transfer address record)
-            # - 04 扩展线性地址记录 (expand address record)
-            # DD——16byte数据
-            # ZZ——校验
+        # intel-hex 格式
+        #:LLAAAARRDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDZZ
+        # LL——长度,单位，byte
+        # AAAA——16 bit 地址
+        # RR——类型
+        # - 00 数据记录 (data record)
+        # - 01 结束记录 (end record)
+        # - 02 扩展段地址记录 (paragraph record)
+        # - 03 转移地址记录 (transfer address record)
+        # - 04 扩展线性地址记录 (expand address record)
+        # DD——16byte数据
+        # ZZ——校验
 
 
 def hex_bin(hexfile, binfile, myWin: MyMainWindow):
