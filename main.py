@@ -2,6 +2,7 @@
 
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+import struct
 
 from PyQt5.QtWidgets import *
 from PyQt5 import *
@@ -26,6 +27,7 @@ expand_f = 0
 bin_buff = []
 bin_file = ''
 cnt = 0
+hsm_boot_start_addr = 0x80010000
 
 
 class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
@@ -50,7 +52,7 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
             print("\n取消选择")
             return
         else:
-            # file_path = file_name_choose
+            file_path = file_name_choose
             self.textEdit.insertPlainText(file_name_choose + '\n')
             # self.textEdit.insertPlainText(str(cnt))
 
@@ -75,22 +77,17 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
         fout.write("const uint8 boot_data={ \\")
         for i in range(size):
-            # temp = '0x' + str(fin.read(1)).format("0x%.2X",)
-            # print(str(fin.read(1)).format("0x%.2X"))
-            # print "0x%.2x" % (fin.read(1))
-            # print(int(ord(fin.read(1), 16)))
-            # print(hex(ord(fin.read(1))))
-            # self.textEdit.insertPlainText(hex(ord(fin.read(1))) + ',')
             if i % 16 != 0:
-                # fout.write(hex(ord(fin.read(1))) + ',')
                 temp = "0x%.2x" % ord(fin.read(1))
                 fout.write(temp + ',')
             else:
                 fout.write('\n')
-                # fout.write(hex(ord(fin.read(1))) + ',')
                 temp = "0x%.2x" % ord(fin.read(1))
                 fout.write(temp + ',')
         fout.write("};")
+
+        fin.close()
+        fout.close()
         # print("'0x' + str(fin.read(1), 16")
         # print(temp)
 
@@ -112,6 +109,7 @@ def hex_bin(hexfile, binfile, myWin: MyMainWindow):
     global bin_buff
     global cnt
     global bin_file
+    global hsm_boot_start_addr
     bin_buff.clear()
     cnt = 0
     bin_file = binfile
@@ -132,7 +130,38 @@ def hex_bin(hexfile, binfile, myWin: MyMainWindow):
             bin_buff.append(result)
             fout.write(result)
             result = ''
+    # hash_end_addr = struct.unpack('I', bin_buff[516:520])
+    # print("hash_end_addr=%x" % hash_end_addr)
+    # hash_end_addr = bin_buff[516:520]
+    # temp = bytes(bin_buff[516:520])
+    # temp = [bin_buff[516].encode(), bin_buff[517].encode(), bin_buff[518].encode(), bin_buff[519].encode()]
+    # temp = [0x12, 0x34, 0x56, 0x78]
+    # temp = [int.from_bytes(bin_buff[516]), int.from_bytes(bin_buff[517]), int.from_bytes(bin_buff[518]),
+    #         int.from_bytes(bin_buff[519])]
+    temp = [int.from_bytes(bin_buff[516], 'big'),
+            int.from_bytes(bin_buff[517], 'big'),
+            int.from_bytes(bin_buff[518], 'big'),
+            int.from_bytes(bin_buff[519], 'big')]
+    # print(temp[0])
+    # print(type((bin_buff[516]).to_byes(length=1,byteorder='little')))
+    temp1 = bytes(temp)
+    # print(type(0x12))
+    # print(bin_buff[516], bin_buff[517], bin_buff[518], bin_buff[519])
+    # print(temp1)
+    addr_tuple = struct.unpack('<I', temp1)
+    hsm_boot_epilog_addr = int(addr_tuple[0])
+    total_size_from_begin = int(hsm_boot_epilog_addr) - hsm_boot_start_addr + 16
+    print(hsm_boot_epilog_addr)
+    print(type(hsm_boot_start_addr))
+    print("0x%x" % int(hsm_boot_epilog_addr))
 
+    bin_buff = bin_buff[0:total_size_from_begin]
+    bin_buff = bin_buff[0x100:total_size_from_begin]
+    # print(type(temp))
+    # print(int.from_bytes(bin_buff[516]))
+    # print(type(temp2[0]))
+    # print(hex(temp2))
+    # del bin_buff[:0x100]
     # end for
     fin.close()
     fout.close()
