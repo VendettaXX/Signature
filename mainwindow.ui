@@ -31,9 +31,9 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>130</y>
-      <width>911</width>
-      <height>361</height>
+      <y>230</y>
+      <width>691</width>
+      <height>271</height>
      </rect>
     </property>
    </widget>
@@ -66,14 +66,27 @@
    <widget class="QPushButton" name="clear">
     <property name="geometry">
      <rect>
-      <x>680</x>
-      <y>40</y>
+      <x>30</x>
+      <y>120</y>
       <width>201</width>
       <height>51</height>
      </rect>
     </property>
     <property name="text">
-     <string>clear</string>
+     <string>生成数组</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="create_signature_without_key">
+    <property name="geometry">
+     <rect>
+      <x>250</x>
+      <y>120</y>
+      <width>201</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>生成签名(生成公私钥)</string>
     </property>
    </widget>
   </widget>

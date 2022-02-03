@@ -9,7 +9,6 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QMainWindow
 
 
 class Ui_MainWindow(object):
@@ -22,7 +21,7 @@ class Ui_MainWindow(object):
         self.select_hex_file.setGeometry(QtCore.QRect(30, 40, 201, 51))
         self.select_hex_file.setObjectName("select_hex_file")
         self.textEdit = QtWidgets.QTextEdit(self.centralwidget)
-        self.textEdit.setGeometry(QtCore.QRect(20, 130, 911, 361))
+        self.textEdit.setGeometry(QtCore.QRect(20, 230, 691, 271))
         self.textEdit.setObjectName("textEdit")
         self.create_bin2hash = QtWidgets.QPushButton(self.centralwidget)
         self.create_bin2hash.setGeometry(QtCore.QRect(250, 40, 201, 51))
@@ -31,8 +30,11 @@ class Ui_MainWindow(object):
         self.create_publickey.setGeometry(QtCore.QRect(470, 40, 201, 51))
         self.create_publickey.setObjectName("create_publickey")
         self.clear = QtWidgets.QPushButton(self.centralwidget)
-        self.clear.setGeometry(QtCore.QRect(680, 40, 201, 51))
+        self.clear.setGeometry(QtCore.QRect(30, 120, 201, 51))
         self.clear.setObjectName("clear")
+        self.create_signature_without_key = QtWidgets.QPushButton(self.centralwidget)
+        self.create_signature_without_key.setGeometry(QtCore.QRect(250, 120, 201, 51))
+        self.create_signature_without_key.setObjectName("create_signature_without_key")
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 1012, 22))
@@ -54,10 +56,6 @@ class Ui_MainWindow(object):
         self.select_hex_file.setText(_translate("MainWindow", "请选择文件(hex)文件"))
         self.create_bin2hash.setText(_translate("MainWindow", "从bin文件生成hash"))
         self.create_publickey.setText(_translate("MainWindow", "随机生成公钥为"))
-        self.clear.setText(_translate("MainWindow", "clear"))
+        self.clear.setText(_translate("MainWindow", "生成数组"))
+        self.create_signature_without_key.setText(_translate("MainWindow", "生成签名(生成公私钥)"))
         self.menuMainWindow.setTitle(_translate("MainWindow", "Signature"))
-
-
-
-
-

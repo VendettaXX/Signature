@@ -15,7 +15,10 @@ from PyQt5.QtCore import qDebug
 # Press the green button in the gutter to run the script.
 import untitled
 import mainwindow
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.exceptions import InvalidSignature
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 last_size = 0
@@ -39,6 +42,34 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.setupUi(self)
         self.select_hex_file.clicked.connect(self.select_hex_file_slot)
         self.clear.clicked.connect(self.slot_create_array)
+        self.create_signature_without_key.clicked.connect(self.slot_create_signature_without_key)
+
+    def slot_create_signature_without_key(self):
+        curve = ec.SECP256R1()
+        signature_algorithm = ec.ECDSA(hashes.SHA256())
+        sender_private_key = ec.generate_private_key(curve, default_backend())
+        sender_public_key = sender_private_key.public_key()
+        # print(sender_public_key.public_bytes())
+        # print(sender_private_key.private_numbers())
+        print(hex(sender_public_key.public_numbers().x))
+        print(hex(sender_public_key.public_numbers().y))
+        print(hex(sender_private_key.private_numbers().private_value))
+
+        data = b"this is some  data  to sign"
+        for index, item in enumerate(bin_buff):
+            bin_buff[index] = int.from_bytes(item, 'big')
+        print(bin_buff)
+        temp = bytes(bin_buff)
+        print(temp)
+        signature = sender_private_key.sign(temp, signature_algorithm)
+        print('Signature: 0x%s' % signature.hex())
+        print(len(signature))
+
+        try:
+            sender_public_key.verify(signature, temp, signature_algorithm)
+            print('Verification OK')
+        except InvalidSignature:
+            print('Verification failed')
 
     def select_hex_file_slot(self):
         file_name_choose, filetype = QFileDialog.getOpenFileName(self,
