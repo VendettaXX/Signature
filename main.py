@@ -3,6 +3,7 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import struct
+import hashlib
 
 from PyQt5.QtWidgets import *
 from PyQt5 import *
@@ -31,10 +32,11 @@ bin_buff = []
 bin_file = ''
 cnt = 0
 hsm_boot_start_addr = 0x80010000
+# file_path: str = "./"
+file_path = 'D:/'
 
 
 class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
-    file_path: str = "./"
     global cnt
 
     def __init__(self, parent=None):
@@ -43,28 +45,37 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.select_hex_file.clicked.connect(self.select_hex_file_slot)
         self.clear.clicked.connect(self.slot_create_array)
         self.create_signature_without_key.clicked.connect(self.slot_create_signature_without_key)
+        self.create_bin2hash.clicked.connect(self.slot_create_SHA256_Hash)
+        # self.create_signature_using_key.clicked.connect(self.slot_create_signature_using_key)
+
+    # def slot_create_signature_using_key(self):
 
     def slot_create_signature_without_key(self):
+        global file_path
+
         curve = ec.SECP256R1()
         signature_algorithm = ec.ECDSA(hashes.SHA256())
         sender_private_key = ec.generate_private_key(curve, default_backend())
         sender_public_key = sender_private_key.public_key()
-        # print(sender_public_key.public_bytes())
-        # print(sender_private_key.private_numbers())
+
         print(hex(sender_public_key.public_numbers().x))
         print(hex(sender_public_key.public_numbers().y))
         print(hex(sender_private_key.private_numbers().private_value))
-
+        # temp = '\n' + '私钥为:' + hex(sender_private_key)
+        # self.textEdit.insertPlainText(temp)
         data = b"this is some  data  to sign"
         for index, item in enumerate(bin_buff):
             bin_buff[index] = int.from_bytes(item, 'big')
-        print(bin_buff)
+        print('bin_buff %s' % type(bin_buff))
         temp = bytes(bin_buff)
         print(temp)
         signature = sender_private_key.sign(temp, signature_algorithm)
         print('Signature: 0x%s' % signature.hex())
+        signature_display = '\n' + 'Signature: 0x%s' % signature.hex()
+        self.textEdit.insertPlainText(signature_display)
         print(len(signature))
-
+        # signature1 = b'abcdefghijklmnopqrstuvwxyzabcedfghijklmnopqrstuvwxyz12345678901234567890'
+        # signature1 =0x30460221009426e507d78d3cb9e9de3f1341d72c8ad7154bfa50fb6564594b7fe440e7cc1a022100ce529e6b11f304ee12c2d713c6bebe006b079c9dc4a2dea76776559478a64a11
         try:
             sender_public_key.verify(signature, temp, signature_algorithm)
             print('Verification OK')
@@ -84,6 +95,7 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
             return
         else:
             file_path = file_name_choose
+            print("file_path %s" % file_path)
             self.textEdit.insertPlainText(file_name_choose + '\n')
             # self.textEdit.insertPlainText(str(cnt))
 
@@ -119,21 +131,42 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
         fin.close()
         fout.close()
+
+        self.textEdit.insertPlainText('\n' + "已生成C标准数组，存入文件" + out_file)
+
         # print("'0x' + str(fin.read(1), 16")
         # print(temp)
 
-        # intel-hex 格式
-        #:LLAAAARRDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDZZ
-        # LL——长度,单位，byte
-        # AAAA——16 bit 地址
-        # RR——类型
-        # - 00 数据记录 (data record)
-        # - 01 结束记录 (end record)
-        # - 02 扩展段地址记录 (paragraph record)
-        # - 03 转移地址记录 (transfer address record)
-        # - 04 扩展线性地址记录 (expand address record)
-        # DD——16byte数据
-        # ZZ——校验
+    def slot_create_SHA256_Hash(self):
+        global file_path
+        print("file_path = %s" % file_path)
+        temp = bytes(bin_buff)
+        s = hashlib.sha256()
+        s.update(temp)
+        b = s.hexdigest()
+        print(len(bin_buff))
+        print(b)
+        print(file_path)
+        # file = open('D:/C++/SecIC_Hsm_boot.hex'[:-4] + '1.bin', 'wb')
+        file = open(bin_file[:-4] + '1.bin', 'wb')
+        for item in bin_buff:
+            s = struct.pack('B', item)
+            file.write(s)
+        file.close()
+
+
+# intel-hex 格式
+#:LLAAAARRDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDZZ
+# LL——长度,单位，byte
+# AAAA——16 bit 地址
+# RR——类型
+# - 00 数据记录 (data record)
+# - 01 结束记录 (end record)
+# - 02 扩展段地址记录 (paragraph record)
+# - 03 转移地址记录 (transfer address record)
+# - 04 扩展线性地址记录 (expand address record)
+# DD——16byte数据
+# ZZ——校验
 
 
 def hex_bin(hexfile, binfile, myWin: MyMainWindow):
@@ -161,14 +194,7 @@ def hex_bin(hexfile, binfile, myWin: MyMainWindow):
             bin_buff.append(result)
             fout.write(result)
             result = ''
-    # hash_end_addr = struct.unpack('I', bin_buff[516:520])
-    # print("hash_end_addr=%x" % hash_end_addr)
-    # hash_end_addr = bin_buff[516:520]
-    # temp = bytes(bin_buff[516:520])
-    # temp = [bin_buff[516].encode(), bin_buff[517].encode(), bin_buff[518].encode(), bin_buff[519].encode()]
-    # temp = [0x12, 0x34, 0x56, 0x78]
-    # temp = [int.from_bytes(bin_buff[516]), int.from_bytes(bin_buff[517]), int.from_bytes(bin_buff[518]),
-    #         int.from_bytes(bin_buff[519])]
+
     temp = [int.from_bytes(bin_buff[516], 'big'),
             int.from_bytes(bin_buff[517], 'big'),
             int.from_bytes(bin_buff[518], 'big'),
