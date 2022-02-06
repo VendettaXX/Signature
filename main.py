@@ -60,9 +60,12 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
         print(hex(sender_public_key.public_numbers().x))
         print(hex(sender_public_key.public_numbers().y))
+        # print(hex(sender_private_key.public_key()))
         print(hex(sender_private_key.private_numbers().private_value))
-        # temp = '\n' + '私钥为:' + hex(sender_private_key)
-        # self.textEdit.insertPlainText(temp)
+        # print(hex(sender_private_key.private_numbers().private_key()))
+
+        self.textEdit.insertPlainText('\n'+'私钥为:'+'\n'+hex(sender_private_key.private_numbers().private_value))
+
         data = b"this is some  data  to sign"
         for index, item in enumerate(bin_buff):
             bin_buff[index] = int.from_bytes(item, 'big')
@@ -71,11 +74,10 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         print(temp)
         signature = sender_private_key.sign(temp, signature_algorithm)
         print('Signature: 0x%s' % signature.hex())
-        signature_display = '\n' + 'Signature: 0x%s' % signature.hex()
+        signature_display = '\n' + '签名为: 0x%s' % signature.hex()
+        # self.textEdit.insertPlainText('\n'+'签名为:'+signature.hex())
         self.textEdit.insertPlainText(signature_display)
-        print(len(signature))
-        # signature1 = b'abcdefghijklmnopqrstuvwxyzabcedfghijklmnopqrstuvwxyz12345678901234567890'
-        # signature1 =0x30460221009426e507d78d3cb9e9de3f1341d72c8ad7154bfa50fb6564594b7fe440e7cc1a022100ce529e6b11f304ee12c2d713c6bebe006b079c9dc4a2dea76776559478a64a11
+        # print(len(signature))
         try:
             sender_public_key.verify(signature, temp, signature_algorithm)
             print('Verification OK')
@@ -222,7 +224,7 @@ def hex_bin(hexfile, binfile, myWin: MyMainWindow):
     # end for
     fin.close()
     fout.close()
-    myWin.textEdit.insertPlainText(str(cnt))
+    myWin.textEdit.insertPlainText('文件共'+str(cnt)+"字节")
     print(len(bin_buff))
 
 
