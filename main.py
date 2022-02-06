@@ -46,7 +46,38 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.clear.clicked.connect(self.slot_create_array)
         self.create_signature_without_key.clicked.connect(self.slot_create_signature_without_key)
         self.create_bin2hash.clicked.connect(self.slot_create_SHA256_Hash)
-        # self.create_signature_using_key.clicked.connect(self.slot_create_signature_using_key)
+        self.create_signature_using_key.clicked.connect(self.slot_create_signature_using_key)
+
+    def slot_create_signature_using_key(self):
+        global bin_buff
+
+        print("1111111111111111111111 %d" % len(bin_buff))
+        private_value = int(self.private_key.text(), 16)
+        value = 0x63bd3b01c5ce749d87f5f7481232a93540acdb0f7b5c014ecd9cd32b041d6f33
+        print('private_value %s ' % type(private_value))
+        # print(len(hex(value)))
+        # print(hex(value))
+        # print(type(value))
+        # print(len(value))
+        curve = ec.SECP256R1()
+        signature_algorithm = ec.ECDSA(hashes.SHA256())
+
+        priv_key = ec.derive_private_key(private_value, curve, default_backend())
+        public_key = priv_key.public_key()
+        data = b"this is some  data  to sign"
+        bin_buff_new = [0] * len(bin_buff)
+        for index, item in enumerate(bin_buff):
+            bin_buff_new[index] = int.from_bytes(item, 'big')
+        print('bin_buff %s' % type(bin_buff))
+        temp = bytes(bin_buff_new)
+        # print(temp)
+        signature = priv_key.sign(temp, signature_algorithm)
+        print('Signature: 0x%s' % signature.hex())
+        try:
+            public_key.verify(signature, temp, signature_algorithm)
+            print('Verification OK')
+        except InvalidSignature:
+            print('Verification failed')
 
     # def slot_create_signature_using_key(self):
 
@@ -64,13 +95,17 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         print(hex(sender_private_key.private_numbers().private_value))
         # print(hex(sender_private_key.private_numbers().private_key()))
 
-        self.textEdit.insertPlainText('\n'+'私钥为:'+'\n'+hex(sender_private_key.private_numbers().private_value))
+        print(hex(sender_private_key.private_numbers().private_value))
+        self.textEdit.insertPlainText('\n' + '私钥为:' + '\n' + hex(sender_private_key.private_numbers().private_value))
 
         data = b"this is some  data  to sign"
+        print("1111111111111111111111 %d" % len(bin_buff))
+
+        bin_buff_new = [0] * len(bin_buff)
         for index, item in enumerate(bin_buff):
-            bin_buff[index] = int.from_bytes(item, 'big')
+            bin_buff_new[index] = int.from_bytes(item, 'big')
         print('bin_buff %s' % type(bin_buff))
-        temp = bytes(bin_buff)
+        temp = bytes(bin_buff_new)
         print(temp)
         signature = sender_private_key.sign(temp, signature_algorithm)
         print('Signature: 0x%s' % signature.hex())
@@ -224,7 +259,7 @@ def hex_bin(hexfile, binfile, myWin: MyMainWindow):
     # end for
     fin.close()
     fout.close()
-    myWin.textEdit.insertPlainText('文件共'+str(cnt)+"字节")
+    myWin.textEdit.insertPlainText('文件共' + str(cnt) + "字节")
     print(len(bin_buff))
 
 

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>844</width>
+    <width>860</width>
     <height>534</height>
    </rect>
   </property>
@@ -17,8 +17,8 @@
    <widget class="QPushButton" name="select_hex_file">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>40</y>
+      <x>20</x>
+      <y>20</y>
       <width>231</width>
       <height>51</height>
      </rect>
@@ -38,10 +38,13 @@
     </property>
    </widget>
    <widget class="QPushButton" name="create_bin2hash">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>40</y>
+      <x>580</x>
+      <y>0</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -53,9 +56,9 @@
    <widget class="QPushButton" name="clear">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>120</y>
-      <width>231</width>
+      <x>280</x>
+      <y>110</y>
+      <width>251</width>
       <height>51</height>
      </rect>
     </property>
@@ -66,8 +69,8 @@
    <widget class="QPushButton" name="create_signature_without_key">
     <property name="geometry">
      <rect>
-      <x>290</x>
-      <y>120</y>
+      <x>280</x>
+      <y>20</y>
       <width>251</width>
       <height>51</height>
      </rect>
@@ -76,35 +79,12 @@
      <string>生成签名(生成新公私钥对)</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>560</x>
-      <y>30</y>
-      <width>51</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>公钥：0x</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="public_key">
-    <property name="geometry">
-     <rect>
-      <x>660</x>
-      <y>40</y>
-      <width>161</width>
-      <height>21</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
       <x>560</x>
-      <y>70</y>
-      <width>61</width>
+      <y>30</y>
+      <width>91</width>
       <height>41</height>
      </rect>
     </property>
@@ -115,10 +95,10 @@
    <widget class="QLineEdit" name="private_key">
     <property name="geometry">
      <rect>
-      <x>660</x>
-      <y>80</y>
-      <width>161</width>
-      <height>21</height>
+      <x>650</x>
+      <y>30</y>
+      <width>171</width>
+      <height>41</height>
      </rect>
     </property>
    </widget>
@@ -132,7 +112,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>根据已有公私钥对生成签名</string>
+     <string>根据已有私钥生成签名</string>
     </property>
    </widget>
   </widget>
@@ -141,7 +121,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>844</width>
+     <width>860</width>
      <height>22</height>
     </rect>
    </property>
