@@ -4,6 +4,7 @@
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 import struct
 import hashlib
+import tkinter.filedialog
 
 from PyQt5.QtWidgets import *
 from PyQt5 import *
@@ -47,20 +48,23 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         self.create_signature_without_key.clicked.connect(self.slot_create_signature_without_key)
         self.create_bin2hash.clicked.connect(self.slot_create_SHA256_Hash)
         self.create_signature_using_key.clicked.connect(self.slot_create_signature_using_key)
+        # self.create_bin2hash.setVisible(False)
 
     def slot_create_signature_using_key(self):
         global bin_buff
+        global bin_file
 
         print("1111111111111111111111 %d" % len(bin_buff))
         private_value = int(self.private_key.text(), 16)
         value = 0x63bd3b01c5ce749d87f5f7481232a93540acdb0f7b5c014ecd9cd32b041d6f33
-        print('private_value %s ' % type(private_value))
-        # print(len(hex(value)))
-        # print(hex(value))
-        # print(type(value))
-        # print(len(value))
+        # value = 0xE353637894118B8691A17B51C300A65CC85DCAF4A04935181E979F2F9A1301B1
+        # print('private_value %s ' % type(private_value))
         curve = ec.SECP256R1()
         signature_algorithm = ec.ECDSA(hashes.SHA256())
+        # private_key_test = ec.derive_private_key(value, curve, default_backend())
+        # public_key_test = private_key_test.public_key()
+        # print(hex(public_key_test.public_numbers().x))
+        # print(hex(public_key_test.public_numbers().y))
 
         priv_key = ec.derive_private_key(private_value, curve, default_backend())
         public_key = priv_key.public_key()
@@ -73,11 +77,46 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         # print(temp)
         signature = priv_key.sign(temp, signature_algorithm)
         print('Signature: 0x%s' % signature.hex())
+        print('lenof signature=%d' % len(signature))
+        # for iter in signature:
+        #     print(hex(iter))
+        #     self.textEdit.insertPlainText(hex(iter) + ',')
+
         try:
             public_key.verify(signature, temp, signature_algorithm)
             print('Verification OK')
         except InvalidSignature:
             print('Verification failed')
+
+        out_file = bin_file[:-5] + 's' + '.txt'
+        fout = open(out_file, 'w')
+        fout.truncate()
+        fout.seek(0, 0)
+
+        fout.write("#define MEMLAY_IB_DUMMY_SIGNATURE { \\")
+        for iter in range(4, 256):
+            if len(signature) <= iter < 256:
+                if iter % 16 != 0:
+                    fout.write("0x00,")
+                else:
+                    fout.write('\n')
+                    fout.write('0x00,')
+            elif iter < len(signature):
+                if iter % 16 != 0:
+                    temp = "0x%.2x" % signature[iter]
+                    fout.write(temp + ',')
+                else:
+                    fout.write('\n')
+                    temp = "0x%.2x" % signature[iter]
+                    fout.write(temp + ',')
+            elif iter > 256:
+                break
+            else:
+                pass
+            iter = iter + 1
+        fout.write("}")
+
+        fout.close()
 
     # def slot_create_signature_using_key(self):
 
@@ -111,7 +150,9 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         print('Signature: 0x%s' % signature.hex())
         signature_display = '\n' + '签名为: 0x%s' % signature.hex()
         # self.textEdit.insertPlainText('\n'+'签名为:'+signature.hex())
+        # print('\n'+'hello')
         self.textEdit.insertPlainText(signature_display)
+        # print('hello world:0x%d' % signature[0])
         # print(len(signature))
         try:
             sender_public_key.verify(signature, temp, signature_algorithm)
@@ -155,9 +196,11 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         fout.truncate()
         fout.seek(0, 0)
 
-        fout.write("const uint8 boot_data={ \\")
+        # fout.write("const uint8 boot_data={ \\")
+        # SecICHsm_SecuFlash_Boot_BlockData[SECICHSM_SECUFLASH_HSM_BOOT_LEN] =
+        fout.write("uint8 SecICHsm_SecuFlash_Boot_BlockData[SECICHSM_SECUFLASH_HSM_BOOT_LEN] = {\\")
         for i in range(size):
-            if i % 16 != 0:
+            if i % 32 != 0:
                 temp = "0x%.2x" % ord(fin.read(1))
                 fout.write(temp + ',')
             else:
@@ -175,35 +218,41 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         # print(temp)
 
     def slot_create_SHA256_Hash(self):
+        global bin_buff
         global file_path
-        print("file_path = %s" % file_path)
-        temp = bytes(bin_buff)
+        # print("file_path = %s" % file_path)
+        bin_buff_hash = []
+
+        for item in bin_buff:
+            bin_buff_hash.append(int.from_bytes(item, 'big'))
+
+        temp = bytes(bin_buff_hash)
         s = hashlib.sha256()
         s.update(temp)
         b = s.hexdigest()
-        print(len(bin_buff))
-        print(b)
-        print(file_path)
+        self.textEdit.insertPlainText('\n'+'hash='+b)
+        # print(len(bin_buff))
+        # print(b)
+        # print(file_path)
         # file = open('D:/C++/SecIC_Hsm_boot.hex'[:-4] + '1.bin', 'wb')
-        file = open(bin_file[:-4] + '1.bin', 'wb')
-        for item in bin_buff:
-            s = struct.pack('B', item)
-            file.write(s)
-        file.close()
+        # file = open(bin_file[:-4] + '1.bin', 'wb')
+        # for item in bin_buff:
+        #     s = struct.pack('B', item)
+        #     file.write(s)
+        # file.close()
 
-
-# intel-hex 格式
-#:LLAAAARRDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDZZ
-# LL——长度,单位，byte
-# AAAA——16 bit 地址
-# RR——类型
-# - 00 数据记录 (data record)
-# - 01 结束记录 (end record)
-# - 02 扩展段地址记录 (paragraph record)
-# - 03 转移地址记录 (transfer address record)
-# - 04 扩展线性地址记录 (expand address record)
-# DD——16byte数据
-# ZZ——校验
+        # intel-hex 格式
+        #:LLAAAARRDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDZZ
+        # LL——长度,单位，byte
+        # AAAA——16 bit 地址
+        # RR——类型
+        # - 00 数据记录 (data record)
+        # - 01 结束记录 (end record)
+        # - 02 扩展段地址记录 (paragraph record)
+        # - 03 转移地址记录 (transfer address record)
+        # - 04 扩展线性地址记录 (expand address record)
+        # DD——16byte数据
+        # ZZ——校验
 
 
 def hex_bin(hexfile, binfile, myWin: MyMainWindow):
