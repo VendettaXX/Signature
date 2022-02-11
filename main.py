@@ -33,6 +33,7 @@ bin_buff = []
 bin_file = ''
 cnt = 0
 hsm_boot_start_addr = 0x80010000
+hsm_app_start_addr = 0x80018000
 # file_path: str = "./"
 file_path = 'D:/'
 
@@ -198,15 +199,24 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
 
         # fout.write("const uint8 boot_data={ \\")
         # SecICHsm_SecuFlash_Boot_BlockData[SECICHSM_SECUFLASH_HSM_BOOT_LEN] =
-        fout.write("uint8 SecICHsm_SecuFlash_Boot_BlockData[SECICHSM_SECUFLASH_HSM_BOOT_LEN] = {\\")
+        if bin_file.find('boot') != -1:
+            fout.write("#include \"SecICHsm_SrvTypes.h\" " + '\n')
+            fout.write("#include \"SecICHsm_SecuFlash_test.h\"" + '\n')
+            fout.write("const uint8 SecICHsm_SecuFlash_Boot_BlockData[SECICHSM_SECUFLASH_HSM_BOOT_LEN] = {\\")
+        else:
+            fout.write("#include \"SecICHsm_SrvTypes.h\" " + '\n')
+            fout.write("#include \"SecICHsm_SecuFlash_test.h\"" + '\n')
+            fout.write("const uint8 SecICHsm_SecuFlash_App_BlockData[SECICHSM_SECUFLASH_HSM_APP_LEN] = {\\")
+
         for i in range(size):
             if i % 32 != 0:
-                temp = "0x%.2x" % ord(fin.read(1))
-                fout.write(temp + ',')
+                temp = "0x%.2X," % ord(fin.read(1))
+                fout.write(temp + ' ')
             else:
                 fout.write('\n')
-                temp = "0x%.2x" % ord(fin.read(1))
-                fout.write(temp + ',')
+                fout.write(' ' + ' ' + ' ' + ' ')
+                temp = "0x%.2X," % ord(fin.read(1))
+                fout.write(temp + ' ')
         fout.write("};")
 
         fin.close()
@@ -230,7 +240,7 @@ class MyMainWindow(QMainWindow, mainwindow.Ui_MainWindow):
         s = hashlib.sha256()
         s.update(temp)
         b = s.hexdigest()
-        self.textEdit.insertPlainText('\n'+'hash='+b)
+        self.textEdit.insertPlainText('\n' + 'hash=' + b)
         # print(len(bin_buff))
         # print(b)
         # print(file_path)
@@ -260,6 +270,7 @@ def hex_bin(hexfile, binfile, myWin: MyMainWindow):
     global cnt
     global bin_file
     global hsm_boot_start_addr
+    global hsm_app_start_addr
     bin_buff.clear()
     cnt = 0
     bin_file = binfile
@@ -271,45 +282,48 @@ def hex_bin(hexfile, binfile, myWin: MyMainWindow):
         size = int(hexstr[1:3], 16)
         if int(hexstr[7:9], 16) != 0:
             continue
-            # end if
         for h in range(0, size):
             b = int(hexstr[9 + h * 2:9 + h * 2 + 2], 16)
             result = pack('B', b)
-            # end if
             cnt = cnt + 1
             bin_buff.append(result)
             fout.write(result)
             result = ''
-
-    temp = [int.from_bytes(bin_buff[516], 'big'),
-            int.from_bytes(bin_buff[517], 'big'),
-            int.from_bytes(bin_buff[518], 'big'),
-            int.from_bytes(bin_buff[519], 'big')]
-    # print(temp[0])
-    # print(type((bin_buff[516]).to_byes(length=1,byteorder='little')))
+    if bin_file.find('boot') != -1:
+        temp = [int.from_bytes(bin_buff[516], 'big'),
+                int.from_bytes(bin_buff[517], 'big'),
+                int.from_bytes(bin_buff[518], 'big'),
+                int.from_bytes(bin_buff[519], 'big')]
+    else:
+        temp = [int.from_bytes(bin_buff[260], 'big'),
+                int.from_bytes(bin_buff[261], 'big'),
+                int.from_bytes(bin_buff[262], 'big'),
+                int.from_bytes(bin_buff[263], 'big')]
     temp1 = bytes(temp)
-    # print(type(0x12))
-    # print(bin_buff[516], bin_buff[517], bin_buff[518], bin_buff[519])
-    # print(temp1)
     addr_tuple = struct.unpack('<I', temp1)
     hsm_boot_epilog_addr = int(addr_tuple[0])
-    total_size_from_begin = int(hsm_boot_epilog_addr) - hsm_boot_start_addr + 16
+    if bin_file.find('boot') != -1:
+        total_size_from_begin = int(hsm_boot_epilog_addr) - hsm_boot_start_addr + 16
+    else:
+        total_size_from_begin = int(hsm_boot_epilog_addr) - hsm_app_start_addr + 16
     print(hsm_boot_epilog_addr)
     print(type(hsm_boot_start_addr))
     print("0x%x" % int(hsm_boot_epilog_addr))
-
-    bin_buff = bin_buff[0:total_size_from_begin]
-    bin_buff = bin_buff[0x100:total_size_from_begin]
-    # print(type(temp))
-    # print(int.from_bytes(bin_buff[516]))
-    # print(type(temp2[0]))
-    # print(hex(temp2))
-    # del bin_buff[:0x100]
-    # end for
+    if bin_file.find('boot') != -1:
+        bin_buff = bin_buff[0:total_size_from_begin]
+        bin_buff = bin_buff[0x100:total_size_from_begin]
+    else:
+        bin_buff = bin_buff[0:total_size_from_begin]
     fin.close()
     fout.close()
     myWin.textEdit.insertPlainText('文件共' + str(cnt) + "字节")
     print(len(bin_buff))
+
+    bin_file_hash = bin_file[:-5] + '.bin1'
+    file = open(bin_file_hash, 'wb')
+    for ele in bin_buff:
+        file.write(ele)
+    file.close()
 
 
 if __name__ == "__main__":
